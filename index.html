@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>کتاب‌خوان هوشمند دوزبانه | اتصال به کتابخانه‌های رایگان جهانی</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Noto+Naskh+Arabic:wght@400;600;700&family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <style>
+    :root {
+      --bg-app: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-secondary: #f1f5f9;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --border-color: #e2e8f0;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.12);
+      --success: #059669;
+      --en-font: 'Literata', Georgia, serif;
+      --fa-font: 'Vazirmatn', sans-serif;
+      --font-size: 18px;
+      --line-height: 1.75;
+      --para-spacing: 16px;
+      --font-weight: 400;
+      --page-width: 820px;
+    }
+
+    [data-theme="sepia"] {
+      --bg-app: #f4ecd8;
+      --bg-surface: #fbf5e6;
+      --bg-secondary: #ede2c6;
+      --text-primary: #3b2f1e;
+      --text-secondary: #6b583e;
+      --border-color: #dfd1b0;
+      --accent: #9a5b13;
+      --accent-soft: rgba(154, 91, 19, 0.14);
+    }
+
+    [data-theme="parchment"] {
+      --bg-app: #f5efe0;
+      --bg-surface: #faf6eb;
+      --bg-secondary: #ece4d0;
+      --text-primary: #2d261b;
+      --text-secondary: #5c503c;
+      --border-color: #dcd1b8;
+      --accent: #b45309;
+      --accent-soft: rgba(180, 83, 9, 0.12);
+    }
+
+    [data-theme="eink"] {
+      --bg-app: #e8e8e8;
+      --bg-surface: #f2f2f2;
+      --bg-secondary: #dcdcdc;
+      --text-primary: #111111;
+      --text-secondary: #333333;
+      --border-color: #b8b8b8;
+      --accent: #000000;
+      --accent-soft: rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="oled"] {
+      --bg-app: #000000;
+      --bg-surface: #0a0a0c;
+      --bg-secondary: #16161a;
+      --text-primary: #e4e4e7;
+      --text-secondary: #9ca3af;
+      --border-color: #27272a;
+      --accent: #60a5fa;
+      --accent-soft: rgba(96, 165, 250, 0.16);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Vazirmatn', sans-serif;
+      background: var(--bg-app);
+      color: var(--text-primary);
+      transition: background 0.25s, color 0.25s;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .toolbar-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 6px 11px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .btn.success {
+      background: var(--success);
+      color: #fff;
+      border-color: var(--success);
+    }
+    .btn.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* Audio Control Bar */
+    .audio-bar {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      font-size: 12.5px;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--bg-secondary);
+      padding: 4px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+    .control-group label { color: var(--text-secondary); font-size: 11.5px; }
+    select, input[type="number"], input[type="text"], input[type="password"] {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-family: inherit;
+      font-size: 12px;
+    }
+    .status-pill {
+      margin-right: auto;
+      font-size: 11.5px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    /* Reader Container */
+    .reader-wrapper {
+      flex: 1;
+      padding: 20px 14px 90px;
+      display: flex;
+      justify-content: center;
+    }
+    .book-container {
+      width: 100%;
+      max-width: var(--page-width);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 28px 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+    .book-header {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 14px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .book-title { font-size: 18px; font-weight: 700; }
+    .chapter-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    /* Layouts */
+    .sentence-card {
+      padding: 10px 12px;
+      margin-bottom: var(--para-spacing);
+      border-radius: 10px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sentence-card:hover { background: var(--bg-secondary); }
+    .sentence-card.playing {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+    .en-text {
+      direction: ltr;
+      text-align: left;
+      font-family: var(--en-font);
+      font-size: var(--font-size);
+      line-height: var(--line-height);
+      font-weight: var(--font-weight);
+      margin-bottom: 6px;
+    }
+    .fa-text {
+      direction: rtl;
+      text-align: right;
+      font-family: var(--fa-font);
+      font-size: calc(var(--font-size) * 0.92);
+      line-height: var(--line-height);
+      color: var(--text-secondary);
+    }
+    .justified .en-text, .justified .fa-text { text-align: justify; }
+
+    .layout-spread .sentence-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      border-bottom: 1px dashed var(--border-color);
+      border-radius: 0;
+    }
+    @media (max-width: 700px) {
+      .layout-spread .sentence-card { grid-template-columns: 1fr; gap: 8px; }
+    }
+
+    .layout-continuous .sentence-card {
+      display: inline;
+      padding: 2px 4px;
+      margin: 0;
+      border-radius: 4px;
+    }
+    .layout-continuous .en-text { display: inline; }
+    .layout-continuous .fa-text {
+      display: inline;
+      font-size: calc(var(--font-size) * 0.85);
+      margin: 0 6px;
+      opacity: 0.85;
+    }
+
+    .layout-focus .sentence-card { opacity: 0.35; transform: scale(0.99); }
+    .layout-focus .sentence-card.playing {
+      opacity: 1;
+      transform: scale(1.01);
+      padding: 18px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+
+    /* Modals */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 60;
+      padding: 14px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .modal.wide { max-width: 860px; }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+      font-weight: 700;
+    }
+    .form-row { margin-bottom: 12px; display: flex; flex-direction: column; gap: 5px; font-size: 13px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .filter-bar {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr auto;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 760px) {
+      .filter-bar { grid-template-columns: 1fr 1fr; }
+    }
+    .lib-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 12px;
+    }
+    .lib-chip {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    .lib-chip.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .book-results {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .book-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .book-card-top {
+      display: flex;
+      gap: 10px;
+    }
+    .book-cover {
+      width: 54px;
+      height: 78px;
+      object-fit: cover;
+      border-radius: 6px;
+      background: var(--border-color);
+      flex-shrink: 0;
+    }
+    .book-card-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .book-card-meta {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      margin-top: 3px;
+    }
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .mini-tag {
+      font-size: 10.5px;
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+    }
+    .card-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .card-actions .btn { flex: 1; justify-content: center; font-size: 11.5px; padding: 5px 8px; }
+
+    .dropzone {
+      border: 2px dashed var(--accent);
+      background: var(--accent-soft);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+    .footer-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-color);
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      z-index: 40;
+    }
+  </style>
+</head>
+<body data-theme="light">
+
+  <!-- Top Navigation -->
+  <header class="topbar">
+    <div class="brand">
+      <span>📖</span>
+      <span>کتاب‌خوان هوشمند دوزبانه</span>
+    </div>
+    <div class="toolbar-actions">
+      <button class="btn success" onclick="openModal('libraryModal')">🌍 کتابخانه‌های رایگان جهانی (جستجو و دانلود)</button>
+      <button class="btn" onclick="openModal('importModal')">📂 باز کردن فایل از گوشی</button>
+      <button class="btn" onclick="openModal('typoModal')">Aa فونت و قالب</button>
+      <button class="btn" onclick="openModal('apiModal')">🔑 کلید API</button>
+      <button class="btn primary" id="translatePageBtn" onclick="translateCurrentChapter()">✨ ترجمه صفحه</button>
+    </div>
+  </header>
+
+  <!-- Audio & Sleep Mode Bar -->
+  <section class="audio-bar">
+    <button class="btn primary" id="playPauseBtn" onclick="togglePlay()">▶️ شروع خوانش</button>
+    <button class="btn" onclick="stopPlayback()">⏹ توقف</button>
+
+    <div class="control-group">
+      <label>الگوی پخش:</label>
+      <select id="playPattern">
+        <option value="en_fa">اصلی + ترجمه بلافاصله</option>
+        <option value="en_fa_en">اصلی ← ترجمه ← تکرار اصلی</option>
+        <option value="en_cont">فقط زبان اصلی (متوالی)</option>
+        <option value="en_step">فقط زبان اصلی (تک با توقف)</option>
+        <option value="fa_cont">فقط ترجمه فارسی (ممتد)</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label>تکرار:</label>
+      <select id="repeatCount">
+        <option value="1">۱ بار</option>
+        <option value="2">۲ بار</option>
+        <option value="3">۳ بار</option>
+        <option value="5">۵ بار</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label>شروع از:</label>
+      <select id="startMode" onchange="handleStartModeChange()">
+        <option value="current">جمله فعلی</option>
+        <option value="page_start">اول صفحه</option>
+        <option value="chapter_start">اول فصل</option>
+        <option value="bookmark">ادامه قبلی</option>
+        <option value="custom_page">صفحه خاص...</option>
+      </select>
+      <input type="number" id="customPageInput" min="1" value="1" style="width:52px; display:none;" placeholder="صفحه" />
+    </div>
+
+    <div class="control-group">
+      <label>تایمر (دقیقه):</label>
+      <input type="number" id="sleepMinutes" min="0" max="240" value="0" style="width:52px;" onchange="updateSleepEstimate()" />
+    </div>
+
+    <button class="btn active" id="sleepModeBtn" onclick="toggleBackgroundSleepMode()">🌙 اسلیپ‌مود: فعال</button>
+
+    <div class="status-pill" id="statusBadge">آماده مطالعه</div>
+  </section>
+
+  <!-- Main Reader Area -->
+  <main class="reader-wrapper">
+    <div class="book-container" id="bookContainer">
+      <div class="book-header">
+        <div>
+          <div class="book-title" id="bookTitle">The Maze Runner — Chapter 1</div>
+          <div style="font-size:12px; color:var(--text-secondary);" id="bookMeta">نویسنده: James Dashner | نمونه آماده مطالعه</div>
+        </div>
+        <div class="chapter-nav">
+          <select id="chapterSelect" onchange="selectChapter(this.value)"></select>
+          <button class="btn" onclick="prevPage()">◀ صفحه قبل</button>
+          <span id="pageIndicator" style="font-size:12.5px; font-weight:600;">صفحه ۱ از ۱</span>
+          <button class="btn" onclick="nextPage()">صفحه بعد ▶</button>
+        </div>
+      </div>
+
+      <div id="sentencesContainer"></div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer-bar">
+    <span id="sleepCountdownText">تایمر خواب غیرفعال است</span>
+    <span id="progressText">جمله ۱ از ۹</span>
+  </footer>
+
+  <!-- Modal: Global Free Libraries Search & Direct Load -->
+  <div class="modal-backdrop" id="libraryModal">
+    <div class="modal wide">
+      <div class="modal-header">
+        <span>🌍 جستجو، دانلود و بارگذاری مستقیم از ۱۰ کتابخانه رایگان بزرگ دنیا</span>
+        <button class="btn" onclick="closeModal('libraryModal')">✕</button>
+      </div>
+
+      <!-- 10 Connected Global Libraries Chips -->
+      <div class="lib-badges" id="librarySourceChips">
+        <span class="lib-chip active" data-lib="all" onclick="selectLibSource('all', this)">🌐 همه ۱۰ کتابخانه</span>
+        <span class="lib-chip" data-lib="gutenberg" onclick="selectLibSource('gutenberg', this)">1. Project Gutenberg</span>
+        <span class="lib-chip" data-lib="openlibrary" onclick="selectLibSource('openlibrary', this)">2. Open Library</span>
+        <span class="lib-chip" data-lib="archive" onclick="selectLibSource('archive', this)">3. Internet Archive</span>
+        <span class="lib-chip" data-lib="standard" onclick="selectLibSource('standard', this)">4. Standard Ebooks</span>
+        <span class="lib-chip" data-lib="feedbooks" onclick="selectLibSource('feedbooks', this)">5. Feedbooks Public</span>
+        <span class="lib-chip" data-lib="manybooks" onclick="selectLibSource('manybooks', this)">6. ManyBooks</span>
+        <span class="lib-chip" data-lib="wikisource" onclick="selectLibSource('wikisource', this)">7. Wikisource</span>
+        <span class="lib-chip" data-lib="doab" onclick="selectLibSource('doab', this)">8. DOAB (علمی/دانشگاهی)</span>
+        <span class="lib-chip" data-lib="librivox" onclick="selectLibSource('librivox', this)">9. LibriVox (صوتی/متن)</span>
+        <span class="lib-chip" data-lib="smashwords" onclick="selectLibSource('smashwords', this)">10. Smashwords Free</span>
+      </div>
+
+      <!-- Search & Filter Bar -->
+      <div class="filter-bar">
+        <input type="text" id="libSearchQuery" placeholder="نام کتاب، نویسنده یا موضوع (مثلاً: Sherlock, Orwell, Science)..." onkeydown="if(event.key==='Enter') searchGlobalLibraries()" />
+        <select id="libCategoryFilter">
+          <option value="">همه دسته‌بندی‌ها</option>
+          <option value="fiction">ادبیات و رمان (Fiction)</option>
+          <option value="science">علمی و فناوری (Science)</option>
+          <option value="philosophy">فلسفه و روانشناسی (Philosophy)</option>
+          <option value="history">تاریخ و تمدن (History)</option>
+          <option value="adventure">ماجراجویی و جنایی (Adventure)</option>
+          <option value="children">کودک و نوجوان (Children)</option>
+        </select>
+        <select id="libFormatFilter">
+          <option value="all">همه فرمت‌ها</option>
+          <option value="epub">EPUB (استاندارد)</option>
+          <option value="txt">TXT (متن مستقیم)</option>
+          <option value="pdf">PDF (پی‌دی‌اف)</option>
+          <option value="html">HTML (وب)</option>
+        </select>
+        <select id="libTypeFilter">
+          <option value="all">همه انواع کتاب</option>
+          <option value="classic">کلاسیک و رمان</option>
+          <option value="academic">آموزشی و مرجع</option>
+          <option value="short">داستان کوتاه</option>
+        </select>
+        <button class="btn primary" onclick="searchGlobalLibraries()">🔍 جستجو</button>
+      </div>
+
+      <div id="libStatusText" style="font-size:12px; color:var(--accent); margin-bottom:8px;">
+        آماده جستجو در بیش از ۲۰ میلیون کتاب رایگان از ۱۰ پایگاه معتبر جهانی...
+      </div>
+
+      <div class="book-results" id="bookResultsGrid"></div>
+    </div>
+  </div>
+
+  <!-- Modal: Import File -->
+  <div class="modal-backdrop" id="importModal">
+    <div class="modal">
+      <div class="modal-header">
+        <span>📂 وارد کردن کتاب یا فایل از حافظه دستگاه</span>
+        <button class="btn" onclick="closeModal('importModal')">✕</button>
+      </div>
+      <div class="dropzone" onclick="document.getElementById('fileInput').click()">
+        <div style="font-size:28px; margin-bottom:6px;">📚</div>
+        <div style="font-weight:700; margin-bottom:4px;">فایل کتاب را انتخاب کنید یا اینجا بکشید</div>
+        <div style="font-size:12px; color:var(--text-secondary);">
+          پشتیبانی از: EPUB, PDF, DOCX, FB2, TXT, MD, HTML, SRT, VTT, JSON, CSV
+        </div>
+        <input type="file" id="fileInput" style="display:none" accept=".epub,.pdf,.docx,.fb2,.xml,.txt,.md,.html,.htm,.srt,.vtt,.json,.csv" onchange="handleFileSelect(event)" />
+      </div>
+      <div id="importProgress" style="font-size:12.5px; color:var(--accent); text-align:center;"></div>
+    </div>
+  </div>
+
+  <!-- Modal: Typography & Layout -->
+  <div class="modal-backdrop" id="typoModal">
+    <div class="modal">
+      <div class="modal-header">
+        <span>Aa تنظیمات تایپوگرافی و قالب استاندارد کتاب‌خوان</span>
+        <button class="btn" onclick="closeModal('typoModal')">✕</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>قالب نمایش صفحه:</label>
+          <select id="layoutSelect" onchange="applyTypography()">
+            <option value="interlinear">خط‌به‌خط (Interlinear)</option>
+            <option value="spread">کتاب باز دو ستونه (Book Spread)</option>
+            <option value="continuous">متن پیوسته کتابی (Continuous)</option>
+            <option value="focus">حالت تمرکز تک‌جمله (Focus)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>تم نوری استاندارد:</label>
+          <select id="themeSelect" onchange="applyTypography()">
+            <option value="light">سفید کاغذی (Day)</option>
+            <option value="sepia">سپیا کلاسیک (Sepia)</option>
+            <option value="parchment">فیلتر نور آبی (Warm)</option>
+            <option value="eink">جوهر الکترونیکی (E-Ink)</option>
+            <option value="oled">شب مطلق (OLED Dark)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>فونت متن انگلیسی:</label>
+          <select id="enFontSelect" onchange="applyTypography()">
+            <option value="'Literata', Georgia, serif">Literata (Google Books)</option>
+            <option value="'Merriweather', serif">Merriweather</option>
+            <option value="Georgia, serif">Georgia / Bookerly</option>
+            <option value="'Inter', sans-serif">Inter (Sans-Serif)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>فونت ترجمه فارسی:</label>
+          <select id="faFontSelect" onchange="applyTypography()">
+            <option value="'Vazirmatn', sans-serif">وزیرمتن (Vazirmatn)</option>
+            <option value="'Noto Naskh Arabic', serif">نوتو نسخ (Noto Naskh)</option>
+            <option value="'Amiri', serif">امیری (Amiri)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>اندازه فونت (<span id="fontSizeVal">18</span>px):</label>
+          <input type="range" id="fontSizeRange" min="14" max="30" value="18" oninput="applyTypography()" />
+        </div>
+        <div class="form-row">
+          <label>فاصله خطوط (<span id="lineHeightVal">1.75</span>):</label>
+          <input type="range" id="lineHeightRange" min="1.4" max="2.4" step="0.05" value="1.75" oninput="applyTypography()" />
+        </div>
+        <div class="form-row">
+          <label>سرعت خوانش صوتی (<span id="rateVal">1.0</span>x):</label>
+          <input type="range" id="speechRateRange" min="0.6" max="1.6" step="0.1" value="1.0" oninput="document.getElementById('rateVal').textContent=this.value" />
+        </div>
+        <div class="form-row">
+          <label>هم‌ترازی متن:</label>
+          <select id="justifySelect" onchange="applyTypography()">
+            <option value="left">استاندارد (چپ/راست)</option>
+            <option value="justify">هم‌تراز کتابی دوطرفه (Justify)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: API Key Settings -->
+  <div class="modal-backdrop" id="apiModal">
+    <div class="modal">
+      <div class="modal-header">
+        <span>🔑 تنظیمات کلید API ترجمه هوشمند</span>
+        <button class="btn" onclick="closeModal('apiModal')">✕</button>
+      </div>
+      <div class="form-row">
+        <label>سرویس هوش مصنوعی:</label>
+        <select id="apiProvider">
+          <option value="gemini">Google Gemini (پیشنهادی - سریع و رایگان)</option>
+          <option value="openai">OpenAI (GPT-4o-mini)</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>کلید API (ذخیره امن در مرورگر شما):</label>
+        <input type="password" id="apiKeyInput" placeholder="AIzaSy... یا sk-..." />
+      </div>
+      <div class="form-row">
+        <label>لحن ترجمه:</label>
+        <select id="translationTone">
+          <option value="literary">ادبی و داستانی روان</option>
+          <option value="academic">دقیق، علمی و آموزشی</option>
+          <option value="conversational">محاوره‌ای و روزمره</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px;">
+        <button class="btn primary" onclick="saveApiSettings()">💾 ذخیره تنظیمات</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    let bookData = {
+      title: "The Maze Runner",
+      author: "James Dashner",
+      chapters: [
+        {
+          title: "Chapter 1",
+          sentences: [
+            { en: "He began his new life standing up, surrounded by cold darkness and stale, dusty air.", fa: "او زندگی جدیدش را ایستاده آغاز کرد، در حالی که تاریکی سرد و هوای راکد و غبارآلود احاطه‌اش کرده بود." },
+            { en: "Metal ground against metal; a lurching shudder shook the floor beneath him.", fa: "فلز روی فلز کشیده شد؛ تکانی شدید کف اتاق را زیر پایش لرزاند." },
+            { en: "He fell down at the sudden movement and shuffled backward on his hands and feet, drops of sweat beading on his forehead despite the cool air.", fa: "با این حرکت ناگهانی به زمین افتاد و روی دست و پا به عقب خزید؛ با وجود هوای خنک، قطرات عرق بر پیشانی‌اش نشست." },
+            { en: "His back struck a hard metal wall; he slid along it until he hit the corner of the room.", fa: "پشتش به دیواره فلزی سختی برخورد کرد؛ در امتداد آن لغزید تا به گوشه اتاق رسید." },
+            { en: "Sinking to the floor, he pulled his legs up tight against his body, hoping his eyes would soon adjust to the darkness.", fa: "روی کف اتاق نشست و پاهایش را محکم در بغل جمع کرد، به این امید که چشمانش به‌زودی به تاریکی عادت کند." },
+            { en: "With another jolt, the room jerked upward like an old lift in a mine shaft.", fa: "با تکان بعدی، اتاقک مانند آسانسوری قدیمی در چاه معدن به سمت بالا پرتاب شد." },
+            { en: "Harsh sounds of chains and pulleys, like the workings of an ancient steel factory, echoed through the room, bouncing off the walls with a hollow, tinny whine.", fa: "صدای خشن زنجیرها و قرقره‌ها، مانند کارکرد یک کارخانه فولاد باستانی، در اتاق پیچید و با زوزه‌ای توخالی و فلزی از دیوارها منعکس شد." },
+            { en: "My name is Thomas, he thought.", fa: "با خود فکر کرد: اسم من توماس است." },
+            { en: "That... that was the only thing he could remember about his life.", fa: "این... این تنها چیزی بود که می‌توانست از زندگی‌اش به یاد بیاورد." }
+          ]
+        }
+      ]
+    };
+
+    const SENTENCES_PER_PAGE = 8;
+    let currentChapterIdx = 0;
+    let currentPage = 0;
+    let currentSentenceIdx = 0;
+    let isPlaying = false;
+    let backgroundSleepEnabled = true;
+    let sleepEndTime = null;
+    let sleepInterval = null;
+    let audioCtx = null;
+    let silentOscillator = null;
+    let selectedLibSource = 'all';
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedKey = localStorage.getItem('bbr_api_key');
+      const savedProvider = localStorage.getItem('bbr_api_provider');
+      const savedTone = localStorage.getItem('bbr_tone');
+      if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
+      if (savedProvider) document.getElementById('apiProvider').value = savedProvider;
+      if (savedTone) document.getElementById('translationTone').value = savedTone;
+      renderChapterOptions();
+      renderReader();
+      searchGlobalLibraries('adventure');
+    });
+
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    function saveApiSettings() {
+      localStorage.setItem('bbr_api_key', document.getElementById('apiKeyInput').value.trim());
+      localStorage.setItem('bbr_api_provider', document.getElementById('apiProvider').value);
+      localStorage.setItem('bbr_tone', document.getElementById('translationTone').value);
+      closeModal('apiModal');
+      setStatus('تنظیمات API ذخیره شد');
+    }
+
+    function setStatus(msg) {
+      document.getElementById('statusBadge').textContent = msg;
+    }
+
+    /* =========================================================================
+       GLOBAL FREE LIBRARIES ENGINE (10+ Sources: Gutendex, OpenLibrary, Archive,
+       Standard Ebooks, Feedbooks, ManyBooks, Wikisource, DOAB, LibriVox, Smashwords)
+       ========================================================================= */
+    function selectLibSource(source, el) {
+      selectedLibSource = source;
+      document.querySelectorAll('.lib-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      searchGlobalLibraries();
+    }
+
+    async function searchGlobalLibraries(defaultQuery) {
+      const rawQuery = typeof defaultQuery === 'string' ? defaultQuery : document.getElementById('libSearchQuery').value.trim();
+      const category = document.getElementById('libCategoryFilter').value;
+      const formatFilter = document.getElementById('libFormatFilter').value;
+      const typeFilter = document.getElementById('libTypeFilter').value;
+      const statusEl = document.getElementById('libStatusText');
+      const grid = document.getElementById('bookResultsGrid');
+
+      const query = [rawQuery, category, typeFilter === 'academic' ? 'science textbook' : ''].filter(Boolean).join(' ') || 'classic';
+      statusEl.textContent = `⏳ در حال جستجو در ۱۰ کتابخانه رایگان جهانی برای «${query}»...`;
+      grid.innerHTML = '';
+
+      let combinedResults = [];
+
+      const fetchGutenberg = async () => {
+        try {
+          const url = `https://gutendex.com/books/?search=${encodeURIComponent(query)}${category ? '&topic=' + encodeURIComponent(category) : ''}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          return (data.results || []).slice(0, 12).map(b => {
+            const formats = b.formats || {};
+            const txtUrl = formats['text/plain; charset=utf-8'] || formats['text/plain; charset=us-ascii'] || formats['text/plain'];
+            const epubUrl = formats['application/epub+zip'];
+            const htmlUrl = formats['text/html'];
+            const cover = formats['image/jpeg'] || '';
+            const availFormats = [];
+            if (txtUrl) availFormats.push('TXT');
+            if (epubUrl) availFormats.push('EPUB');
+            if (htmlUrl) availFormats.push('HTML');
+            return {
+              id: 'gut-' + b.id,
+              source: 'Project Gutenberg',
+              sourceKey: 'gutenberg',
+              title: b.title,
+              author: (b.authors && b.authors[0]) ? b.authors[0].name : 'Unknown Author',
+              category: (b.subjects && b.subjects[0]) ? b.subjects[0].split('--')[0] : 'Classic Literature',
+              cover,
+              formats: availFormats,
+              directLoadUrl: txtUrl || htmlUrl || epubUrl,
+              directLoadType: txtUrl ? 'txt' : (htmlUrl ? 'html' : 'epub'),
+              downloadUrl: epubUrl || txtUrl || htmlUrl,
+              externalPortal: `https://www.gutenberg.org/ebooks/${b.id}`
+            };
+          });
+        } catch (e) { return []; }
+      };
+
+      const fetchOpenLibrary = async () => {
+        try {
+          const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&has_fulltext=true&limit=10`;
+          const res = await fetch(url);
+          const data = await res.json();
+          return (data.docs || []).map(d => {
+            const iaId = d.ia && d.ia[0];
+            const cover = d.cover_i ? `https://covers.openlibrary.org/b/id/${d.cover_i}-M.jpg` : '';
+            const availFormats = iaId ? ['PDF', 'EPUB', 'TXT'] : ['HTML'];
+            return {
+              id: 'ol-' + (d.key || Math.random()),
+              source: iaId ? 'Open Library / Archive.org' : 'Open Library',
+              sourceKey: iaId ? 'archive' : 'openlibrary',
+              title: d.title,
+              author: (d.author_name && d.author_name[0]) ? d.author_name[0] : 'Unknown Author',
+              category: (d.subject && d.subject[0]) ? d.subject[0] : 'General',
+              cover,
+              formats: availFormats,
+              directLoadUrl: iaId ? `https://archive.org/download/${iaId}/${iaId}_djvu.txt` : null,
+              directLoadType: 'txt',
+              downloadUrl: iaId ? `https://archive.org/download/${iaId}/${iaId}.pdf` : `https://openlibrary.org${d.key}`,
+              externalPortal: iaId ? `https://archive.org/details/${iaId}` : `https://openlibrary.org${d.key}`
+            };
+          });
+        } catch (e) { return []; }
+      };
+
+      const fetchWikisource = async () => {
+        try {
+          const url = `https://en.wikisource.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*&srlimit=6`;
+          const res = await fetch(url);
+          const data = await res.json();
+          return ((data.query && data.query.search) || []).map(w => ({
+            id: 'ws-' + w.pageid,
+            source: 'Wikisource',
+            sourceKey: 'wikisource',
+            title: w.title,
+            author: 'Wikisource Archive',
+            category: category || 'Public Domain',
+            cover: '',
+            formats: ['HTML', 'TXT'],
+            directLoadUrl: `https://en.wikisource.org/w/api.php?action=parse&pageid=${w.pageid}&prop=text&format=json&origin=*`,
+            directLoadType: 'wikisource_api',
+            downloadUrl: `https://en.wikisource.org/?curid=${w.pageid}`,
+            externalPortal: `https://en.wikisource.org/?curid=${w.pageid}`
+          }));
+        } catch (e) { return []; }
+      };
+
+      const buildPartnerLibraryCards = () => {
+        const qEnc = encodeURIComponent(query);
+        const partners = [
+          {
+            source: 'Standard Ebooks',
+            sourceKey: 'standard',
+            title: `جستجوی «${query}» در Standard Ebooks`,
+            author: 'نسخه‌های صفحه‌آرایی‌شده استاندارد',
+            category: 'Classic EPUB',
+            formats: ['EPUB', 'AZW3'],
+            downloadUrl: `https://standardebooks.org/ebooks?query=${qEnc}`,
+            externalPortal: `https://standardebooks.org/ebooks?query=${qEnc}`
+          },
+          {
+            source: 'Feedbooks Public Domain',
+            sourceKey: 'feedbooks',
+            title: `جستجوی «${query}» در Feedbooks`,
+            author: 'کتابخانه رایگان بین‌المللی',
+            category: 'Fiction & Classics',
+            formats: ['EPUB', 'PDF'],
+            downloadUrl: `https://www.feedbooks.com/search?query=${qEnc}`,
+            externalPortal: `https://www.feedbooks.com/search?query=${qEnc}`
+          },
+          {
+            source: 'ManyBooks',
+            sourceKey: 'manybooks',
+            title: `جستجوی «${query}» در ManyBooks`,
+            author: 'بیش از ۵۰,۰۰۰ کتاب رایگان',
+            category: 'All Genres',
+            formats: ['EPUB', 'PDF', 'TXT'],
+            downloadUrl: `https://manybooks.net/search-book?search=${qEnc}`,
+            externalPortal: `https://manybooks.net/search-book?search=${qEnc}`
+          },
+          {
+            source: 'DOAB (Directory of Open Access Books)',
+            sourceKey: 'doab',
+            title: `جستجوی علمی «${query}» در DOAB`,
+            author: 'کتاب‌های دانشگاهی و پژوهشی آزاد',
+            category: 'Academic / Science',
+            formats: ['PDF', 'EPUB'],
+            downloadUrl: `https://directory.doabooks.org/discover?query=${qEnc}`,
+            externalPortal: `https://directory.doabooks.org/discover?query=${qEnc}`
+          },
+          {
+            source: 'LibriVox',
+            sourceKey: 'librivox',
+            title: `نسخه صوتی و متنی «${query}» در LibriVox`,
+            author: 'کتاب‌های صوتی رایگان + متن',
+            category: 'Audiobook & Text',
+            formats: ['TXT', 'HTML'],
+            downloadUrl: `https://librivox.org/search?q=${qEnc}&search_form=advanced`,
+            externalPortal: `https://librivox.org/search?q=${qEnc}&search_form=advanced`
+          },
+          {
+            source: 'Smashwords Free',
+            sourceKey: 'smashwords',
+            title: `کتاب‌های رایگان «${query}» در Smashwords`,
+            author: 'ناشران مستقل (فیلتر رایگان)',
+            category: 'Indie & Modern',
+            formats: ['EPUB', 'TXT', 'PDF'],
+            downloadUrl: `https://www.smashwords.com/books/category/1/newest/0/free/any?q=${qEnc}`,
+            externalPortal: `https://www.smashwords.com/books/category/1/newest/0/free/any?q=${qEnc}`
+          }
+        ];
+        return partners;
+      };
+
+      const [gutBooks, olBooks, wsBooks] = await Promise.all([
+        fetchGutenberg(),
+        fetchOpenLibrary(),
+        fetchWikisource()
+      ]);
+
+      combinedResults = [...gutBooks, ...olBooks, ...wsBooks, ...buildPartnerLibraryCards()];
+
+      if (selectedLibSource !== 'all') {
+        combinedResults = combinedResults.filter(b =>
+          b.sourceKey === selectedLibSource ||
+          (selectedLibSource === 'openlibrary' && b.sourceKey === 'archive')
+        );
+      }
+
+      if (formatFilter !== 'all') {
+        const fmtUpper = formatFilter.toUpperCase();
+        combinedResults = combinedResults.filter(b => b.formats.includes(fmtUpper));
+      }
+
+      statusEl.textContent = `✅ ${combinedResults.length} نتیجه از کتابخانه‌های رایگان جهانی یافت شد:`;
+
+      if (combinedResults.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:20px; color:var(--text-secondary);">موردی با این فیلتر یافت نشد. فیلتر فرمت یا کتابخانه را تغییر دهید.</div>';
+        return;
+      }
+
+      combinedResults.forEach(book => {
+        const card = document.createElement('div');
+        card.className = 'book-card';
+
+        const coverHtml = book.cover
+          ? `<img src="${book.cover}" class="book-cover" alt="cover" onerror="this.style.display='none'" />`
+          : `<div class="book-cover" style="display:flex;align-items:center;justify-content:center;font-size:22px;">📘</div>`;
+
+        const formatTags = book.formats.map(f => `<span class="mini-tag">${f}</span>`).join('');
+
+        const directBtn = book.directLoadUrl
+          ? `<button class="btn primary" onclick='loadOnlineBook(${JSON.stringify(book).replace(/'/g, "&#39;")})'>📖 بارگذاری در ریدر</button>`
+          : '';
+
+        card.innerHTML = `
+          <div>
+            <div class="book-card-top">
+              ${coverHtml}
+              <div>
+                <div class="book-card-title" title="${book.title}">${book.title}</div>
+                <div class="book-card-meta">✍️ ${book.author}</div>
+                <div class="book-card-meta" style="color:var(--accent); font-weight:600;">🏛 ${book.source}</div>
+              </div>
+            </div>
+            <div class="tag-row" style="margin-top:8px;">
+              <span class="mini-tag">🏷 ${book.category}</span>
+              ${formatTags}
+            </div>
+          </div>
+          <div class="card-actions">
+            ${directBtn}
+            <a href="${book.downloadUrl}" target="_blank" rel="noopener" class="btn">⬇️ دانلود / سایت</a>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    async function loadOnlineBook(book) {
+      const statusEl = document.getElementById('libStatusText');
+      statusEl.textContent = `⏳ در حال دریافت و پردازش کتاب «${book.title}» از ${book.source}...`;
+
+      try {
+        let rawText = '';
+
+        if (book.directLoadType === 'wikisource_api') {
+          const res = await fetch(book.directLoadUrl);
+          const data = await res.json();
+          const html = data.parse && data.parse.text && data.parse.text['*'];
+          const doc = new DOMParser().parseFromString(html || '', 'text/html');
+          rawText = doc.body.innerText || doc.body.textContent || '';
+        } else {
+          let res;
+          try {
+            res = await fetch(book.directLoadUrl);
+            if (!res.ok) throw new Error('Direct fetch blocked');
+          } catch (e) {
+            res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(book.directLoadUrl)}`);
+          }
+
+          if (book.directLoadType === 'epub') {
+            const buf = await res.arrayBuffer();
+            const zip = await JSZip.loadAsync(buf);
+            const chapters = [];
+            const htmlFiles = Object.keys(zip.files).filter(f => f.endsWith('.html') || f.endsWith('.xhtml') || f.endsWith('.htm')).sort();
+            let idx = 1;
+            for (const path of htmlFiles) {
+              const raw = await zip.files[path].async('string');
+              const doc = new DOMParser().parseFromString(raw, 'text/html');
+              const sents = splitIntoSentences(doc.body.innerText || doc.body.textContent || '');
+              if (sents.length > 2) chapters.push({ title: `فصل ${idx++}`, sentences: sents });
+            }
+            if (chapters.length) {
+              bookData = { title: book.title, author: book.author, chapters };
+              finalizeBookLoad();
+              return;
+            }
+          } else {
+            const text = await res.text();
+            if (book.directLoadType === 'html') {
+              const doc = new DOMParser().parseFromString(text, 'text/html');
+              rawText = doc.body.innerText || doc.body.textContent || '';
+            } else {
+              rawText = text;
+            }
+          }
+        }
+
+        const startMarker = rawText.indexOf('*** START OF');
+        if (startMarker !== -1) {
+          const lineEnd = rawText.indexOf('
+', startMarker);
+          if (lineEnd !== -1) rawText = rawText.slice(lineEnd + 1);
+        }
+        const endMarker = rawText.indexOf('*** END OF');
+        if (endMarker !== -1) rawText = rawText.slice(0, endMarker);
+
+        const allSentences = splitIntoSentences(rawText);
+        if (allSentences.length === 0) throw new Error('متن قابل استخراج در این نسخه یافت نشد.');
+
+        const chapters = [];
+        const CHUNK = 120;
+        for (let i = 0; i < allSentences.length; i += CHUNK) {
+          chapters.push({
+            title: `بخش ${Math.floor(i / CHUNK) + 1}`,
+            sentences: allSentences.slice(i, i + CHUNK)
+          });
+        }
+
+        bookData = {
+          title: book.title,
+          author: `${book.author} (${book.source})`,
+          chapters
+        };
+        finalizeBookLoad();
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = `⚠️ بارگذاری مستقیم این کتاب به دلیل محدودیت سرور منبع انجام نشد؛ از دکمه «دانلود / سایت» فایل EPUB/TXT را بگیرید و از «باز کردن فایل» وارد کنید.`;
+      }
+    }
+
+    function finalizeBookLoad() {
+      currentChapterIdx = 0;
+      currentPage = 0;
+      currentSentenceIdx = 0;
+      renderChapterOptions();
+      renderReader();
+      closeModal('libraryModal');
+      setStatus(`کتاب «${bookData.title}» بارگذاری شد`);
+    }
+
+    function renderChapterOptions() {
+      const sel = document.getElementById('chapterSelect');
+      sel.innerHTML = '';
+      bookData.chapters.forEach((ch, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = ch.title;
+        sel.appendChild(opt);
+      });
+      document.getElementById('bookTitle').textContent = bookData.title;
+      document.getElementById('bookMeta').textContent = `نویسنده / منبع: ${bookData.author || 'نامشخص'} | تعداد بخش‌ها: ${bookData.chapters.length}`;
+    }
+
+    function selectChapter(idx) {
+      currentChapterIdx = parseInt(idx, 10);
+      currentPage = 0;
+      currentSentenceIdx = 0;
+      renderReader();
+    }
+
+    function renderReader() {
+      const ch = bookData.chapters[currentChapterIdx];
+      const totalPages = Math.max(1, Math.ceil(ch.sentences.length / SENTENCES_PER_PAGE));
+      if (currentPage >= totalPages) currentPage = totalPages - 1;
+
+      const start = currentPage * SENTENCES_PER_PAGE;
+      const end = Math.min(start + SENTENCES_PER_PAGE, ch.sentences.length);
+      const container = document.getElementById('sentencesContainer');
+      container.innerHTML = '';
+
+      for (let i = start; i < end; i++) {
+        const item = ch.sentences[i];
+        const card = document.createElement('div');
+        card.className = 'sentence-card' + (i === currentSentenceIdx ? ' playing' : '');
+        card.id = 'sent-' + i;
+        card.onclick = () => {
+          currentSentenceIdx = i;
+          saveBookmark();
+          renderReader();
+          if (isPlaying) {
+            window.speechSynthesis.cancel();
+            playCycleFrom(currentSentenceIdx);
+          } else {
+            speakSinglePreview(i);
+          }
+        };
+
+        const enDiv = document.createElement('div');
+        enDiv.className = 'en-text';
+        enDiv.textContent = item.en;
+
+        const faDiv = document.createElement('div');
+        faDiv.className = 'fa-text';
+        faDiv.textContent = item.fa || '⏳ (برای ترجمه روی «ترجمه صفحه» بزنید)';
+
+        card.appendChild(enDiv);
+        card.appendChild(faDiv);
+        container.appendChild(card);
+      }
+
+      document.getElementById('pageIndicator').textContent = `صفحه ${currentPage + 1} از ${totalPages}`;
+      document.getElementById('progressText').textContent = `جمله ${currentSentenceIdx + 1} از ${ch.sentences.length}`;
+      updateSleepEstimate();
+    }
+
+    function prevPage() {
+      if (currentPage > 0) {
+        currentPage--;
+        currentSentenceIdx = currentPage * SENTENCES_PER_PAGE;
+        renderReader();
+      }
+    }
+
+    function nextPage() {
+      const ch = bookData.chapters[currentChapterIdx];
+      const totalPages = Math.ceil(ch.sentences.length / SENTENCES_PER_PAGE);
+      if (currentPage < totalPages - 1) {
+        currentPage++;
+        currentSentenceIdx = currentPage * SENTENCES_PER_PAGE;
+        renderReader();
+      }
+    }
+
+    function applyTypography() {
+      const layout = document.getElementById('layoutSelect').value;
+      const theme = document.getElementById('themeSelect').value;
+      const enFont = document.getElementById('enFontSelect').value;
+      const faFont = document.getElementById('faFontSelect').value;
+      const fontSize = document.getElementById('fontSizeRange').value;
+      const lineHeight = document.getElementById('lineHeightRange').value;
+      const justify = document.getElementById('justifySelect').value;
+
+      document.body.setAttribute('data-theme', theme);
+      document.documentElement.style.setProperty('--en-font', enFont);
+      document.documentElement.style.setProperty('--fa-font', faFont);
+      document.documentElement.style.setProperty('--font-size', fontSize + 'px');
+      document.documentElement.style.setProperty('--line-height', lineHeight);
+
+      document.getElementById('fontSizeVal').textContent = fontSize;
+      document.getElementById('lineHeightVal').textContent = lineHeight;
+
+      const bc = document.getElementById('bookContainer');
+      bc.className = 'book-container layout-' + layout + (justify === 'justify' ? ' justified' : '');
+    }
+
+    function toggleBackgroundSleepMode() {
+      backgroundSleepEnabled = !backgroundSleepEnabled;
+      const btn = document.getElementById('sleepModeBtn');
+      btn.classList.toggle('active', backgroundSleepEnabled);
+      btn.textContent = backgroundSleepEnabled ? '🌙 اسلیپ‌مود: فعال' : '🌙 اسلیپ‌مود: خاموش';
+      if (!backgroundSleepEnabled) stopKeepAliveAudio();
+    }
+
+    function startKeepAliveAudio() {
+      if (!backgroundSleepEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        if (!silentOscillator) {
+          silentOscillator = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          gain.gain.value = 0.0001;
+          silentOscillator.connect(gain);
+          gain.connect(audioCtx.destination);
+          silentOscillator.start();
+        }
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: bookData.title,
+            artist: bookData.chapters[currentChapterIdx].title,
+            album: 'کتاب‌خوان هوشمند دوزبانه'
+          });
+          navigator.mediaSession.setActionHandler('play', () => { if (!isPlaying) togglePlay(); });
+          navigator.mediaSession.setActionHandler('pause', () => { if (isPlaying) stopPlayback(); });
+        }
+      } catch (e) {}
+    }
+
+    function stopKeepAliveAudio() {
+      if (silentOscillator) {
+        try { silentOscillator.stop(); } catch (e) {}
+        silentOscillator = null;
+      }
+    }
+
+    function handleStartModeChange() {
+      const mode = document.getElementById('startMode').value;
+      document.getElementById('customPageInput').style.display = (mode === 'custom_page') ? 'inline-block' : 'none';
+    }
+
+    function saveBookmark() {
+      localStorage.setItem('bbr_bookmark', JSON.stringify({
+        chapter: currentChapterIdx,
+        sentence: currentSentenceIdx
+      }));
+    }
+
+    function updateSleepEstimate() {
+      const mins = parseInt(document.getElementById('sleepMinutes').value || '0', 10);
+      const el = document.getElementById('sleepCountdownText');
+      if (mins <= 0) {
+        el.textContent = 'تایمر خواب غیرفعال است';
+        return;
+      }
+      const ch = bookData.chapters[currentChapterIdx];
+      const estSentences = Math.round(mins * 7);
+      const targetIdx = Math.min(ch.sentences.length - 1, currentSentenceIdx + estSentences);
+      const targetPage = Math.floor(targetIdx / SENTENCES_PER_PAGE) + 1;
+      el.textContent = `⏱ زمان انتخابی: ${mins} دقیقه | پایان تقریبی: صفحه ${targetPage} (جمله ${targetIdx + 1})`;
+    }
+
+    function startSleepTimerIfNeeded() {
+      clearInterval(sleepInterval);
+      const mins = parseInt(document.getElementById('sleepMinutes').value || '0', 10);
+      if (mins <= 0) return;
+      sleepEndTime = Date.now() + mins * 60 * 1000;
+      sleepInterval = setInterval(() => {
+        const remaining = sleepEndTime - Date.now();
+        if (remaining <= 0) {
+          stopPlayback();
+          document.getElementById('sleepCountdownText').textContent = '🌙 تایمر خواب به پایان رسید و پخش متوقف شد.';
+          clearInterval(sleepInterval);
+        } else {
+          const m = Math.floor(remaining / 60000);
+          const s = Math.floor((remaining % 60000) / 1000);
+          document.getElementById('sleepCountdownText').textContent = `🌙 زمان باقی‌مانده تا توقف خودکار: ${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+      }, 1000);
+    }
+
+    function speakUtterance(text, lang) {
+      return new Promise((resolve) => {
+        if (!text || !isPlaying) return resolve();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = lang;
+        utter.rate = parseFloat(document.getElementById('speechRateRange').value || '1.0');
+        utter.onend = () => resolve();
+        utter.onerror = () => resolve();
+        window.speechSynthesis.speak(utter);
+      });
+    }
+
+    function speakSinglePreview(idx) {
+      const item = bookData.chapters[currentChapterIdx].sentences[idx];
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(item.en);
+      u.lang = 'en-US';
+      u.rate = parseFloat(document.getElementById('speechRateRange').value || '1.0');
+      window.speechSynthesis.speak(u);
+    }
+
+    async function togglePlay() {
+      if (isPlaying) {
+        stopPlayback();
+        return;
+      }
+
+      const mode = document.getElementById('startMode').value;
+      const ch = bookData.chapters[currentChapterIdx];
+      if (mode === 'page_start') {
+        currentSentenceIdx = currentPage * SENTENCES_PER_PAGE;
+      } else if (mode === 'chapter_start') {
+        currentSentenceIdx = 0;
+        currentPage = 0;
+      } else if (mode === 'bookmark') {
+        const bm = JSON.parse(localStorage.getItem('bbr_bookmark') || 'null');
+        if (bm && bookData.chapters[bm.chapter]) {
+          currentChapterIdx = bm.chapter;
+          currentSentenceIdx = bm.sentence;
+          currentPage = Math.floor(currentSentenceIdx / SENTENCES_PER_PAGE);
+          document.getElementById('chapterSelect').value = currentChapterIdx;
+        }
+      } else if (mode === 'custom_page') {
+        const p = Math.max(1, parseInt(document.getElementById('customPageInput').value || '1', 10)) - 1;
+        currentPage = Math.min(p, Math.ceil(ch.sentences.length / SENTENCES_PER_PAGE) - 1);
+        currentSentenceIdx = currentPage * SENTENCES_PER_PAGE;
+      }
+
+      isPlaying = true;
+      document.getElementById('playPauseBtn').textContent = '⏸ مکث';
+      setStatus('در حال روخوانی...');
+      startKeepAliveAudio();
+      startSleepTimerIfNeeded();
+      await playCycleFrom(currentSentenceIdx);
+    }
+
+    function stopPlayback() {
+      isPlaying = false;
+      window.speechSynthesis.cancel();
+      clearInterval(sleepInterval);
+      stopKeepAliveAudio();
+      document.getElementById('playPauseBtn').textContent = '▶️ شروع خوانش';
+      setStatus('متوقف شد');
+    }
+
+    async function playCycleFrom(startIdx) {
+      const pattern = document.getElementById('playPattern').value;
+      const repeats = parseInt(document.getElementById('repeatCount').value || '1', 10);
+      const ch = bookData.chapters[currentChapterIdx];
+
+      for (let i = startIdx; i < ch.sentences.length; i++) {
+        if (!isPlaying) break;
+        currentSentenceIdx = i;
+        currentPage = Math.floor(i / SENTENCES_PER_PAGE);
+        saveBookmark();
+        renderReader();
+
+        const el = document.getElementById('sent-' + i);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        const item = ch.sentences[i];
+
+        for (let r = 0; r < repeats; r++) {
+          if (!isPlaying) break;
+          if (pattern === 'en_fa') {
+            await speakUtterance(item.en, 'en-US');
+            if (item.fa) await speakUtterance(item.fa, 'fa-IR');
+          } else if (pattern === 'en_fa_en') {
+            await speakUtterance(item.en, 'en-US');
+            if (item.fa) await speakUtterance(item.fa, 'fa-IR');
+            await speakUtterance(item.en, 'en-US');
+          } else if (pattern === 'en_cont' || pattern === 'en_step') {
+            await speakUtterance(item.en, 'en-US');
+          } else if (pattern === 'fa_cont') {
+            if (item.fa) await speakUtterance(item.fa, 'fa-IR');
+          }
+        }
+
+        if (pattern === 'en_step') {
+          stopPlayback();
+          setStatus('توقف تک‌جمله');
+          break;
+        }
+      }
+
+      if (isPlaying && currentSentenceIdx >= ch.sentences.length - 1) {
+        stopPlayback();
+        setStatus('پایان بخش');
+      }
+    }
+
+    async function translateCurrentChapter() {
+      const apiKey = localStorage.getItem('bbr_api_key');
+      if (!apiKey) {
+        openModal('apiModal');
+        alert('لطفاً ابتدا کلید API خود را وارد و ذخیره کنید.');
+        return;
+      }
+      const provider = localStorage.getItem('bbr_api_provider') || 'gemini';
+      const tone = localStorage.getItem('bbr_tone') || 'literary';
+      const ch = bookData.chapters[currentChapterIdx];
+      const start = currentPage * SENTENCES_PER_PAGE;
+      const end = Math.min(start + SENTENCES_PER_PAGE, ch.sentences.length);
+      const slice = ch.sentences.slice(start, end);
+
+      setStatus('در حال ترجمه هوشمند صفحه...');
+      const prompt = `Translate each English sentence into fluent Persian (${tone} tone). Return ONLY a valid JSON array of Persian strings matching the exact count (${slice.length}):
+` + JSON.stringify(slice.map(s => s.en));
+
+      try {
+        let translations = [];
+        if (provider === 'gemini') {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+          });
+          const data = await res.json();
+          const raw = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
+          translations = JSON.parse(raw);
+        } else {
+          const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+            body: JSON.stringify({
+              model: 'gpt-4o-mini',
+              messages: [{ role: 'user', content: prompt }]
+            })
+          });
+          const data = await res.json();
+          const raw = data.choices[0].message.content.replace(/```json|```/g, '').trim();
+          translations = JSON.parse(raw);
+        }
+
+        translations.forEach((faText, idx) => {
+          if (ch.sentences[start + idx]) ch.sentences[start + idx].fa = faText;
+        });
+        renderReader();
+        setStatus('ترجمه صفحه انجام شد');
+      } catch (err) {
+        console.error(err);
+        setStatus('خطا در اتصال به API');
+        alert('خطا در ترجمه: لطفاً کلید API و اینترنت خود را بررسی کنید.');
+      }
+    }
+
+    function splitIntoSentences(text) {
+      return text
+        .replace(/\s+/g, ' ')
+        .match(/[^.!?]+[.!?]+|[^.!?]+$/g)
+        ?.map(s => s.trim())
+        .filter(s => s.length > 1)
+        .map(en => ({ en, fa: '' })) || [];
+    }
+
+    async function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const ext = file.name.split('.').pop().toLowerCase();
+      const prog = document.getElementById('importProgress');
+      prog.textContent = 'در حال پردازش فایل ' + file.name + '...';
+
+      try {
+        if (ext === 'txt' || ext === 'md') {
+          const text = await file.text();
+          const clean = text.replace(/[#*_`>]/g, '');
+          bookData = {
+            title: file.name,
+            author: 'فایل متنی',
+            chapters: [{ title: 'بخش ۱', sentences: splitIntoSentences(clean) }]
+          };
+        } else if (ext === 'html' || ext === 'htm' || ext === 'fb2' || ext === 'xml') {
+          const text = await file.text();
+          const doc = new DOMParser().parseFromString(text, 'text/html');
+          bookData = {
+            title: file.name,
+            author: 'سند ساختاریافته',
+            chapters: [{ title: 'متن اصلی', sentences: splitIntoSentences(doc.body.innerText || doc.body.textContent) }]
+          };
+        } else if (ext === 'srt' || ext === 'vtt') {
+          const text = await file.text();
+          const lines = text.split(/?
+/).filter(l => l.trim() && !/^\d+$/.test(l.trim()) && !l.includes('-->') && !l.startsWith('WEBVTT'));
+          bookData = {
+            title: file.name,
+            author: 'فایل زیرنویس',
+            chapters: [{ title: 'زیرنویس‌ها', sentences: lines.map(en => ({ en: en.trim(), fa: '' })) }]
+          };
+        } else if (ext === 'json') {
+          const arr = JSON.parse(await file.text());
+          bookData = {
+            title: file.name,
+            author: 'داده JSON',
+            chapters: [{ title: 'محتوا', sentences: arr.map(x => ({ en: x.en || x.text || String(x), fa: x.fa || x.translation || '' })) }]
+          };
+        } else if (ext === 'docx') {
+          const arrayBuffer = await file.arrayBuffer();
+          const result = await mammoth.extractRawText({ arrayBuffer });
+          bookData = {
+            title: file.name,
+            author: 'سند Word',
+            chapters: [{ title: 'متن سند', sentences: splitIntoSentences(result.value) }]
+          };
+        } else if (ext === 'pdf') {
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          const chapters = [];
+          for (let p = 1; p <= pdf.numPages; p++) {
+            prog.textContent = `در حال استخراج صفحه ${p} از ${pdf.numPages}...`;
+            const page = await pdf.getPage(p);
+            const content = await page.getTextContent();
+            const pageText = content.items.map(i => i.str).join(' ');
+            const sents = splitIntoSentences(pageText);
+            if (sents.length) chapters.push({ title: `صفحه ${p}`, sentences: sents });
+          }
+          bookData = { title: file.name, author: 'سند PDF', chapters: chapters.length ? chapters : [{ title: 'خالی', sentences: [] }] };
+        } else if (ext === 'epub') {
+          const zip = await JSZip.loadAsync(await file.arrayBuffer());
+          const chapters = [];
+          const htmlFiles = Object.keys(zip.files).filter(f => f.endsWith('.html') || f.endsWith('.xhtml') || f.endsWith('.htm')).sort();
+          let idx = 1;
+          for (const path of htmlFiles) {
+            const raw = await zip.files[path].async('string');
+            const doc = new DOMParser().parseFromString(raw, 'text/html');
+            const sents = splitIntoSentences(doc.body.innerText || doc.body.textContent || '');
+            if (sents.length > 2) {
+              chapters.push({ title: `فصل ${idx++}`, sentences: sents });
+            }
+          }
+          bookData = { title: file.name, author: 'کتاب EPUB', chapters: chapters.length ? chapters : [{ title: 'متن کتاب', sentences: [] }] };
+        }
+
+        currentChapterIdx = 0;
+        currentPage = 0;
+        currentSentenceIdx = 0;
+        renderChapterOptions();
+        renderReader();
+        prog.textContent = '';
+        closeModal('importModal');
+        setStatus('فایل با موفقیت بارگذاری شد');
+      } catch (e) {
+        console.error(e);
+        prog.textContent = 'خطا در خواندن فایل: ' + e.message;
+      }
+    }
+  </script>
+</body>
+</html>

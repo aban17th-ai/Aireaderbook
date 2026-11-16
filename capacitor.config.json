@@ -1,0 +1,12 @@
+{
+  "appId": "com.sayad.bilingualreader",
+  "appName": "Bilingual Book Reader",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
